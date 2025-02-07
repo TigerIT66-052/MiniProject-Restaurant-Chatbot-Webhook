@@ -3,9 +3,6 @@ name: Docker CI/CD Pipeline
 on:
   push:
     branches:
-      - main  # รันเมื่อมีการ push ไปที่ branch main
-  pull_request:
-    branches:
       - main
 
 jobs:
@@ -23,9 +20,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/restaurant-chatbot-webhook .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/restaurant-chatbot-webhook .
 
       - name: Push Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/restaurant-chatbot-webhook
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/restaurant-chatbot-webhook
