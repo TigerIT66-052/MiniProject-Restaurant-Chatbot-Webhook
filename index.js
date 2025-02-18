@@ -1,18 +1,36 @@
-const express = require("express");
+const express = require('express');
+const bodyParser = require('body-parser');
+
 const app = express();
-app.use(express.json());
+const port = 3000;
 
-app.post("/webhook", (req, res) => {
-    let intent = req.body.queryResult.intent.displayName;
-    let responseText = "ฉันไม่เข้าใจ กรุณาลองใหม่อีกครั้ง";
+// กำหนดให้ bodyParser อ่านข้อมูล JSON
+app.use(bodyParser.json());
 
-    if (intent === "order_food") {
-        let food = req.body.queryResult.parameters.menu_item;
-        let quantity = req.body.queryResult.parameters.number;
-        responseText = `รับทราบ! คุณต้องการ ${quantity} ${food} ใช่ไหมคะ?`;
-    }
-
-    res.json({ fulfillmentText: responseText });
+// เส้นทาง GET ที่ '/'
+app.get('/', (req, res) => {
+  res.send('Hello, this is the home route!');
 });
 
-app.listen(3000, () => console.log("Server is running on port 3000"));
+// เส้นทาง POST สำหรับ Webhook
+app.post('/webhook', (req, res) => {
+    // ตรวจสอบว่า req.body มีข้อมูลหรือไม่
+    if (!req.body || !req.body.message || !req.body.intent) {
+        return res.status(400).send('Missing message or intent');
+    }
+
+    const message = req.body.message;
+    const intent = req.body.intent;
+
+    console.log(`Received message: ${message}, intent: ${intent}`);
+
+    // ส่งคำตอบกลับไป
+    res.send({
+        text: `You said: ${message}, intent: ${intent}`
+    });
+});
+
+// เริ่มเซิร์ฟเวอร์ที่พอร์ต 3000
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
