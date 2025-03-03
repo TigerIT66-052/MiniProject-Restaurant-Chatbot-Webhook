@@ -1,36 +1,30 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const fs = require('fs');
+const https = require('https');
 
 const app = express();
-const port = 3000;
+app.use(express.json()); // ใช้ middleware สำหรับ parse JSON request body
 
-// กำหนดให้ bodyParser อ่านข้อมูล JSON
-app.use(bodyParser.json());
+// โหลดใบรับรอง SSL
+const options = {
+  key: fs.readFileSync('ssl/key.pem'),
+  cert: fs.readFileSync('ssl/cert.pem')
+};
 
-// เส้นทาง GET ที่ '/'
-app.get('/', (req, res) => {
-  res.send('Hello, this is the home route!');
-});
-
-// เส้นทาง POST สำหรับ Webhook
+// Webhook Endpoint
 app.post('/webhook', (req, res) => {
-    // ตรวจสอบว่า req.body มีข้อมูลหรือไม่
-    if (!req.body || !req.body.message || !req.body.intent) {
-        return res.status(400).send('Missing message or intent');
-    }
+  const { message, intent } = req.body; // ใช้ Destructuring เพื่อความกระชับ
 
-    const message = req.body.message;
-    const intent = req.body.intent;
+  if (!message || !intent) {
+    return res.status(400).json({ error: 'Missing message or intent' });
+  }
 
-    console.log(`Received message: ${message}, intent: ${intent}`);
-
-    // ส่งคำตอบกลับไป
-    res.send({
-        text: `You said: ${message}, intent: ${intent}`
-    });
+  console.log(`📩 Received: Message="${message}", Intent="${intent}"`);
+  res.json({ text: `You said: ${message}, intent: ${intent}` });
 });
 
-// เริ่มเซิร์ฟเวอร์ที่พอร์ต 3000
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+// รัน HTTPS Server บนพอร์ต 3000
+https.createServer(options, app).listen(3000, () => {
+  console.log('🚀 Webhook is running on:');
+  console.log('🔗 https://localhost:3000/webhook');
 });
